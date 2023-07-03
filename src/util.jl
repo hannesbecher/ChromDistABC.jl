@@ -215,8 +215,11 @@ function getLociWithinSlice(foci, w=6, st=0)
 	foci[ [(x[3] < st) & (x[3] > (st-w)) for x in eachrow(foci)], :]
 end
 
+"""
+    rand3(min, max)::Vec3
 
-
+Make a `Vec3` struct for coordiantes or directions, each slot is bounded betwen `min` and `max`.
+"""
 function rand3(min, max)::Vec3
 	Vec3(rand(Uniform(min, max)), rand(Uniform(min, max)), rand(Uniform(min, max)))
 end
@@ -236,17 +239,20 @@ Simulation function for count data.
 """
 function simFunCounts(params, constants, targetTab)
 	
+  rr=10
+  st=8
+  dmin=0.5
   # select model
   simY = Int[]
   simO = Int[]
   if params[1] < 1/4 # two params
     while length(simY) < constants[1]
-      a = noDiscernible2(getLociWithinSlice(randFociFast5(10), 6, rand()*26-10), 0.5) 
+      a = noDiscernible2(getLociWithinSlice(randFociFast5(rr), st, rand()*(2*rr+st)-rr), dmin) 
       a >= 2 && push!(simY, a)
     end # while
 
     while length(simO) < constants[2]
-      a = noDiscernible2(getLociWithinSlice(randFociFast5(10), 6, rand()*26-10), 0.5)
+      a = noDiscernible2(getLociWithinSlice(randFociFast5(rr), st, rand()*(2*rr+st)-rr), dmin)
       a >= 2 && push!(simO, a)
     end
 
@@ -270,15 +276,113 @@ function simFunCounts(params, constants, targetTab)
   end # if
 
   while length(simY) < constants[1]
-    a = noDiscernible2(getLociWithinSlice(mobileFociFast5(10, [α1y, 20, α2y, 20]), 6, rand()*26-10), 0.5) 
+    a = noDiscernible2(getLociWithinSlice(mobileFociFast5(rr, [α1y, 20, α2y, 20]), st, rand()*(2*rr+st)-rr), dmin) 
     a >= 2 && push!(simY, a)
   end # while
   
   while length(simO) < constants[2]
-    a = noDiscernible2(getLociWithinSlice(mobileFociFast5(10, [α1o, 20, α2o, 20]), 6, rand()*26-10), 0.5) 
+    a = noDiscernible2(getLociWithinSlice(mobileFociFast5(rr, [α1o, 20, α2o, 20]), st, rand()*(2*rr+st)-rr), dmin) 
     a >= 2 && push!(simO, a)
   end # while
   
   cityblock(targetTab, vcat(map(x->sum(simY.==x), 2:4), map(x->sum(simO.==x), 2:4))), 1
 end
 
+"""
+    focusDistSum(foci)::Float64
+
+Returns the summed pairwise distance between all foci in `foci`
+"""
+function focusDistSum(foci, mDist=0.5)::Float64
+	
+	sr, sc = size(foci)
+	
+	sc == 3 || error("Foci are expected to have three coordinates.")
+	sr < 2 && return 0.0
+	
+	# if 2 or mor foci, compute dist mat
+	dm1 = pairwise(Euclidean(), foci')
+	#println(dm1) # for debug
+	#check whether any dist < 0.5
+	if any(map(x -> any(diag(dm1,x) .< mDist), 1:sr-1))
+		#cluster, means, distances again
+		hc = hclust(dm1)
+		# clustered groups
+		grps = cutree(hc, h=mDist)
+
+		# average over groups
+		foci2 = reduce(vcat,map(unique(grps)) do x
+			ind = grps .== x
+			sum(foci[ind,:], dims=1)/sum(ind)
+		end)
+		#println("Recursion...")
+
+		return focusDistSum(foci2)
+		
+	else
+		return sum(LowerTriangular(dm1))
+	end
+		
+
+end
+
+
+
+"""
+    simFunDists(params, constants, target)
+
+Simulation function for distance data.
+"""
+function simFunDists(params, constants, target)
+
+  rr=10
+  st=8
+  dmin=0.5
+	
+  # select model
+  simY = Float64[]
+  simO = Float64[]
+  if params[1] < 1/4 # no params
+    while length(simY) < constants[1]
+      a = focusDistSum(getLociWithinSlice(randFociFast5(rr), st, rand()*(2*rr+st)-rr), dmin) 
+      a > 0.0 && push!(simY, a)
+    end # while
+    d1 = ksdist(target[1], simY)
+      while length(simO) < constants[2]
+        a = focusDistSum(getLociWithinSlice(randFociFast5(rr), st, rand()*(2*rr+st)-rr), dmin)
+      a > 0.0 && push!(simO, a)
+    end
+    d2 = ksdist(target[2], simO)
+    return d1+d2, (d1,d2)
+
+  elseif params[1] < 2/4	
+    α1y=params[2]
+    α2y=params[3]
+    α1o=params[2]
+    α2o=params[3]
+  elseif params[1] < 3/4
+    α1y=params[2]
+    α2y=params[3]
+    α1o=params[4]
+    α2o=params[3]
+  else
+    α1y=params[2]
+    α2y=params[3]
+    α1o=params[4]
+    α2o=params[5]
+  end # if
+
+  while length(simY) < constants[1]
+    a = focusDistSum(getLociWithinSlice(mobileFociFast5(rr, [α1y, 20, α2y, 20]), st, rand()*(2*rr+st)-rr), dmin) 
+    a > 0.0 && push!(simY, a)
+  end # while
+  d1 = ksdist(target[1], simY)
+  
+  while length(simO) < constants[2]
+    a = focusDistSum(getLociWithinSlice(mobileFociFast5(rr, [α1o, 20, α2o, 20]), st, rand()*(2*rr+st)-rr), dmin) 
+    a > 0.0 && push!(simO, a)
+  end # while
+  d2 = ksdist(target[2], simO)
+     
+  d1+d2, (d1,d2)
+end

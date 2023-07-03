@@ -26,7 +26,7 @@ using Statistics
 using Base.Threads
 
 import Base.show
-import LinearAlgebra: LowerTriangular
+import LinearAlgebra: LowerTriangular, diag
 import Base.:+
 import Base.:*
 import Base.:/
@@ -44,6 +44,7 @@ export
   #functions
   setupCounts,
   simFunCounts,
+  simFunDists,
   ksdist,
   runabc,
   writeoutput

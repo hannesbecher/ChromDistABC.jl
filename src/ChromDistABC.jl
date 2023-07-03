@@ -13,7 +13,7 @@ testFun() = println("Test")
 
 
 
-
+using Clustering
 using Distributions
 using ProgressMeter
 using StatsBase
@@ -40,24 +40,19 @@ export
   abctype,
   ParticleRejection,
   ABCRejection,
-  ABCRejectionModel,
-  Kernel,
-  gaussiankernel,
-  uniformkernel,
 
   #functions
+  setupCounts,
   simFunCounts,
   ksdist,
   runabc,
   writeoutput
 
 ### source files
-include("kernels.jl")
 include("types.jl")
 include("util.jl")
 include("ABCalgorithm.jl")
 include("sampling.jl")
-include("calculateweights.jl")
 include("plots.jl")
 
 

@@ -50,38 +50,6 @@ function show(io::IO, ABCresults::ABCrejectionresults)
   end
 end
 
-function show(io::IO, ABCresults::ABCrejectionmodelresults)
-
-  @printf("Number of simulations: %.2e\n", ABCresults.numsims)
-  @printf("Acceptance ratio: %.2e\n\n", ABCresults.accratio)
-  print("Model frequencies:\n")
-  for j in 1:length(ABCresults.modelfreq)
-    @printf("\tModel %d: %.2f\n", j, ABCresults.modelfreq[j])
-  end
-
-  print("\nParameters:\n\n")
-
-  for j in 1:length(ABCresults.parameters)
-    print("Model $j\n")
-
-    upperci = zeros(Float64, size(ABCresults.parameters[j], 2))
-    lowerci = zeros(Float64, size(ABCresults.parameters[j], 2))
-    parametermeans = zeros(Float64, size(ABCresults.parameters[j], 2))
-    parametermedians = zeros(Float64, size(ABCresults.parameters[j], 2))
-
-    for i in 1:size(ABCresults.parameters[j], 2)
-      parametermeans[i] = mean(ABCresults.parameters[j][:, i])
-      parametermedians[i] = median(ABCresults.parameters[j][:, i])
-      (lowerci[i], upperci[i]) = quantile(ABCresults.parameters[j][:, i], [0.025,0.975])
-    end
-
-    print("\tMedian (95% intervals):\n")
-    for i in 1:length(parametermeans)
-        @printf("\tParameter %d: %.2f (%.2f,%.2f)\n", i, parametermedians[i], lowerci[i], upperci[i])
-    end
-  end
-end
-
 function writeoutput(results::ABCrejectionresults; dir = "", file = "Rejection-output.txt")
   distance = map(x -> x.distance, results.particles)
   nparams =  size(results.parameters)[2]
@@ -97,35 +65,6 @@ function writeoutput(results::ABCrejectionresults; dir = "", file = "Rejection-o
   write(f, "## Acceptance ratio: $(round(results.accratio, sigdigits = 4))\n")
   write(f, head...)
   writedlm(f, out)
-  close(f)
-
-end
-
-function writeoutput(results::ABCrejectionmodelresults; dir = "", file = "RejectionModel-output")
-
-    for i in 1:length(results.modelfreq)
-      prtcles = results.particles[map(x -> x.model, results.particles).==i]
-      distance = map(x -> x.distance, prtcles)
-      nparams =  size(results.parameters[i])[2]
-
-      head = map(x -> "parameter$x\t", 1:nparams)
-      append!(head, ["distance\n"])
-      out = hcat(results.parameters[i], distance)
-
-      f = open(joinpath(dir, "$(file)model$i.txt"), "w")
-      write(f, "## ABC Rejection algorithm\n")
-      write(f, "## Number of simulations: $(results.numsims)\n")
-      write(f, "## Acceptance ratio: $(round(results.accratio, sigdigits = 4))\n")
-      write(f, head...)
-      writedlm(f, out)
-      close(f)
-  end
-
-  #write model probabilities to file
-  head = ["Model\t", "Probability\n"]
-  f = open(joinpath(dir, "$(file)modelprobabilities.txt"), "w")
-  write(f, head...)
-  writedlm(f, hcat(collect(1:length(results.modelfreq)), results.modelfreq))
   close(f)
 
 end
@@ -342,5 +281,4 @@ function simFunCounts(params, constants, targetTab)
   
   cityblock(targetTab, vcat(map(x->sum(simY.==x), 2:4), map(x->sum(simO.==x), 2:4))), 1
 end
-
 

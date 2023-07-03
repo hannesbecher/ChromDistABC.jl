@@ -12,3 +12,4 @@ Documentation for [ChromDistABC](https://github.com/hannesbecher/ChromDistABC.jl
 ```@autodocs
 Modules = [ChromDistABC]
 ```
+

@@ -40,6 +40,7 @@ export
   abctype,
   ParticleRejection,
   ABCRejection,
+  DistConst,
 
   #functions
   setupCounts,

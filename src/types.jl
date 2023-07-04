@@ -82,3 +82,16 @@ struct Vec3
 	y::Float64
 	z::Float64
 end
+
+"""
+    DistConst(counts::NamedTuple; rr::Float64=10, st::Float64=6, dmin::Float64=0.5)
+
+A type to provide as `constants` argument to runabc.
+"""
+struct DistConst
+  counts::NamedTuple
+  rr::Float64 # cell radius
+  st::Float64 # section thickness
+  dmin::Float64 # min resolution
+  DistConst(counts::NamedTuple; rr=10, st=6, dmin=0.5) = new(counts, rr, st, dmin)
+end

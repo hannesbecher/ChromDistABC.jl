@@ -239,19 +239,22 @@ Simulation function for count data.
 """
 function simFunCounts(params, constants, targetTab)
 	
-  rr=10
-  st=8
-  dmin=0.5
+  rr=constants.rr
+  st=constants.st
+  dmin=constants.dmin
+  cts=constants.counts
+  ks=keys(constants.counts)
+  
   # select model
   simY = Int[]
   simO = Int[]
   if params[1] < 1/4 # two params
-    while length(simY) < constants[1]
+    while length(simY) < cts[keys[1]]
       a = noDiscernible2(getLociWithinSlice(randFociFast5(rr), st, rand()*(2*rr+st)-rr), dmin) 
       a >= 2 && push!(simY, a)
     end # while
 
-    while length(simO) < constants[2]
+    while length(simO) < cts[keys[2]]
       a = noDiscernible2(getLociWithinSlice(randFociFast5(rr), st, rand()*(2*rr+st)-rr), dmin)
       a >= 2 && push!(simO, a)
     end
@@ -275,12 +278,12 @@ function simFunCounts(params, constants, targetTab)
       α2o=params[5]
   end # if
 
-  while length(simY) < constants[1]
+  while length(simY) < cts[keys[1]]
     a = noDiscernible2(getLociWithinSlice(mobileFociFast5(rr, [α1y, 20, α2y, 20]), st, rand()*(2*rr+st)-rr), dmin) 
     a >= 2 && push!(simY, a)
   end # while
   
-  while length(simO) < constants[2]
+  while length(simO) < cts[keys[2]]
     a = noDiscernible2(getLociWithinSlice(mobileFociFast5(rr, [α1o, 20, α2o, 20]), st, rand()*(2*rr+st)-rr), dmin) 
     a >= 2 && push!(simO, a)
   end # while
@@ -335,20 +338,22 @@ Simulation function for distance data.
 """
 function simFunDists(params, constants, target)
 
-  rr=10
-  st=8
-  dmin=0.5
+  rr=constants.rr
+  st=constants.st
+  dmin=constants.dmin
+  cts=constants.counts
+  ks=keys(constants.counts)
 	
   # select model
   simY = Float64[]
   simO = Float64[]
   if params[1] < 1/4 # no params
-    while length(simY) < constants[1]
+    while length(simY) < cts[keys[1]]
       a = focusDistSum(getLociWithinSlice(randFociFast5(rr), st, rand()*(2*rr+st)-rr), dmin) 
       a > 0.0 && push!(simY, a)
     end # while
     d1 = ksdist(target[1], simY)
-      while length(simO) < constants[2]
+      while length(simO) < cts[keys[2]]
         a = focusDistSum(getLociWithinSlice(randFociFast5(rr), st, rand()*(2*rr+st)-rr), dmin)
       a > 0.0 && push!(simO, a)
     end
@@ -372,13 +377,13 @@ function simFunDists(params, constants, target)
     α2o=params[5]
   end # if
 
-  while length(simY) < constants[1]
+  while length(simY) < cts[keys[1]]
     a = focusDistSum(getLociWithinSlice(mobileFociFast5(rr, [α1y, 20, α2y, 20]), st, rand()*(2*rr+st)-rr), dmin) 
     a > 0.0 && push!(simY, a)
   end # while
   d1 = ksdist(target[1], simY)
   
-  while length(simO) < constants[2]
+  while length(simO) < cts[keys[2]]
     a = focusDistSum(getLociWithinSlice(mobileFociFast5(rr, [α1o, 20, α2o, 20]), st, rand()*(2*rr+st)-rr), dmin) 
     a > 0.0 && push!(simO, a)
   end # while

@@ -6,11 +6,13 @@ using Distributions
 using DelimitedFiles
 using ChromDistABC
 
-pp = ARGS[1] # data set
+const pp = ARGS[1] # data set
 
 
-pref=ARGS[2] # output prefix
-np = parse(Int, ARGS[3]) # n particles requested
+const pref=ARGS[2] # output prefix
+const np = parse(Int, ARGS[3]) # n particles requested
+const st = parse(Float64, ARGS[4])
+
 
 const matAll = DelimitedFiles.readdlm(pp, ',')
 const matY = matAll[matAll[:,3].!=1.0,:]
@@ -25,7 +27,7 @@ const distsO = matO[:,2]
 setupCounts = ABCRejection(simFunCounts, 
  		5, # number of parameters
  		12.0, #target ϵ
- 		constants=[totY,totO],
+ 		constants=DistConst((Y=countsY, O=countsO), st=st),
 	nparticles=np,
  		Prior([Uniform(0.0, 1.0), # select model
            Uniform(0.1/20, 5.0/20), #α1young

@@ -14,7 +14,7 @@ echo Running task $id on $HOSTNAME
 echo "==========================================================="
 
 SECONDS=0
-bash juliaAbcCountsArg.sh mouse.csv NEWmouseCounts$id 100
+bash juliaAbcCountsArg.sh mouse.csv NEWmouseCounts$id 100 8
 duration=$SECONDS
 echo "$(($duration/60))m$(($duration%60))s elapsed"
 echo "==========================================================="
